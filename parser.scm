@@ -39,9 +39,12 @@
   (print "Usage: javascript2html [-o output_file] input_file")
   (newline))
 
-(define-macro (call-operation ass-list parameters)
-  (let ((operation (cdr '(ass-list))))
-   `(,@operation ,parameters)))
+(define-macro (call-operation ass-list params)
+    `(let ((command-c (cadr ,ass-list)))
+      (command-c ,params)))
+
+(define (add-input-file file) ; This is very ugly
+  (set! (cons file input-files) input-files))
 
 (define (parse-command-line parameters)
   (unless (null? parameters)
@@ -51,13 +54,13 @@
       (print "Parameters: " (cdr parameters))
       (case (car argument)
         ((command) (call-operation argument (cdr parameters)))
-        ((other) (cons (cdr argument) input-files))))))
+        ((other) (add-input-file (cdr argument)))))))
 
 (define (open-js-file filename)(print "Load file here."))
 
 (define (main args)
   (if (null? args)
       (display-usage #f)
-      (parse-command-line args)))
+      (print (parse-command-line args))))
 
 (main (cdr (argv)))
