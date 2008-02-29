@@ -15,10 +15,12 @@
   '())
 
 (define (process-output-command arguments)
-  (print "Output command, arguments:" arguments))
+  (print "Output command, arguments:" arguments)
+  (cdr arguments)) ; Eat one argument
 
 (define (process-css-command arguments)
-  (print "Process css command, arguments: " arguments))
+  (print "Process css command, arguments: " arguments)
+  arguments) ; Eat no arguments
 
 (define command-line-parameters
   `(
@@ -43,11 +45,11 @@
   (newline))
 
 (define-macro (call-operation ass-list params)
-    `(let ((command-c (cadr ,ass-list)))
-      (command-c ,params)))
+  `(let ((command-c (cadr ,ass-list)))
+     (command-c ,params)))
 
 (define (add-input-file file) ; This is very ugly
-  (set! (cons file input-files) input-files))
+  (set! input-files (cons file input-files)))
 
 (define (parse-command-line parameters)
   (unless (null? parameters)
@@ -55,15 +57,22 @@
       (print "Argument: " argument)
       (print "Car: " (car argument))
       (print "Parameters: " (cdr parameters))
-      (case (car argument)
-        ((command) (call-operation argument (cdr parameters)))
-        ((other) (add-input-file (cdr argument)))))))
+      (let ((result
+             (case (car argument)
+               ((command) (call-operation argument (cdr parameters)))
+               ((other) (begin
+                          (add-input-file (cdr argument))
+                          (print "Other arg:" (cdr argument))
+                          (cdr parameters))))))
+        (parse-command-line result)))))
 
 (define (open-js-file filename)(print "Load file here."))
 
 (define (main args)
   (if (null? args)
       (display-usage #f)
-      (print (parse-command-line args))))
+      (begin
+        (print (parse-command-line args))
+        (print "Input file list: " (reverse input-files)))))
 
 (main (cdr (argv)))
