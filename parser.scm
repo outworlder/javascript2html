@@ -17,10 +17,13 @@
 (define (process-output-command arguments)
   (print "Output command, arguments:" arguments))
 
+(define (process-css-command arguments)
+  (print "Process css command, arguments: " arguments))
+
 (define command-line-parameters
-  '(
-    ("-o" process-output-command)
-    ("-css" process-css-command)))
+  `(
+    ("-o" ,process-output-command)
+    ("-css" ,process-css-command)))
 
 (define (get-command-line-token line)
   (if (null? line)
