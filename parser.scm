@@ -107,7 +107,7 @@
 
 (define (process-js-file filename)
   (with-input-from-file filename
-    (parse-javascript-file)))
+    (parse-tokens)))
 
 (define (match-number? string)
   (string->nummber string))
@@ -130,28 +130,27 @@
 (define (next-token)
   (read-token predicate-identify-js-token))
 
-(define (get-token token)
-  (let ((current-token (if (null?
-  (cond ((match-reserved-word? current-token) `(reserved-word ,token)
-         (match-identifier? current-token) `(identifier ,token)
-         (match-number? current-token) `(number ,token)
-         (match-comment? current-token) `(comment ,token)
-         (else (get-token (next-token))))))
-
 ;; Actually parses the given javascript file. Gets input from the
 ;; current-input-port
-(define (parse-javascript-file)
-  (let ((current-token-string (read-token predicate-identify-js-token))
-        (let ((current-token (get-token current-token-string)))
-          (
+(define (parse-tokens)
+  (let ((current-token (next-token))
+        (if (current-token)
+            (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,token)
+                     (match-identifier? current-token) `(identifier ,token)
+                     (match-number? current-token) `(number ,token)
+                     (match-comment? current-token) `(comment ,token))
+                     (else (cons (parse-tokens))))))
+              (build-html-formatting (car result) (cdr result)))))))
+                  
 
 (define (main args)
   (if (null? args)
       (display-usage #f)
       (begin
         (parse-command-line args)
-        (print "Input file list: " (reverse input-files))
-        (map process-js-file input-files))))
+        (if (null? input-files)
+            (display-usage)
+            (map process-js-file input-files)))))
 
 (main (cdr (argv)))
 
