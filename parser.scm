@@ -2,16 +2,10 @@
 ;; Stephen Pedrosa Eilert (9911081), 2008
 ;; Construção de Compiladores 2008.1 - Riverson Rios
 
-;; Javascript identifiers
-(define javascript-identifiers
-  '(if then else return var))
+;; Including the command-line file
 
 ;; Command line format:
 ;; javascript2html <-o output file> input_file
-
-;; List of input files, initially empty
-(define input-files
-  '())
 
 ;; Redirects standard output to a file. Currently does nothing.
 (define (process-output-command arguments)
@@ -69,6 +63,15 @@
                           (cdr parameters))))))
         (parse-command-line result)))))
 
+
+;; Javascript identifiers
+(define javascript-identifiers
+  '(if then else return var))
+
+;; List of input files, initially empty
+(define input-files
+  '())
+
 (define (process-js-file filename)
   (with-input-from-file filename
     (parse-javascript-file)))
@@ -76,13 +79,13 @@
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
 ;; a token is recognized
 (define (predicate-identify-js-token character)
-  ())
+  #f)
 
 ;; Actually parses the given javascript file. Gets input from the
 ;; current-input-port
-(define (parse-javascript-file)
-  (let ((current-token (read-token predicate-identify-js-token)))
-    (
+;;(define (parse-javascript-file)
+;;  (let ((current-token (read-token predicate-identify-js-token)))
+;;    ()))
 
 (define (main args)
   (if (null? args)
