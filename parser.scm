@@ -85,19 +85,19 @@
 
 (define (html-font text color . attributes)
   (let ((new-text (map (lambda (x)
+                         (print "X: " x)
                          (case x
-                           ('bold (string "<b>" text "</b>"))
-                           ('italics (string "<i>" text "</i>")))) attributes)))
-    ((string "<font color=" color ">" new-text "</font>"))))
-
-(define (html-font text color)
-  (print "<font color=#" color ">" text "</font>"))
+                           ('bold (string-append "<b>" text "</b>"))
+                           ('italics (string-append "<i>" text "</i>")))) attributes)))
+    (print "New text: " new-text)
+    (string-append "<font color=" color ">" new-text "</font>")))
 
 (define (build-html-formatting type text)
-      (let ((attributes (assq (type syntax-highlight-table))))
+      (let ((attributes (assq type syntax-highlight-table)))
         (if attributes
-            (let ((color (cdr attributes))
-                  (formatting (cddr attributes)))
+            (let ((color (cadr attributes))
+                  (formatting (caddr attributes)))
+              (print "Color: " color "Formatting: " formatting)
             (html-font text color formatting)))))
 
 
@@ -106,11 +106,12 @@
   '())
 
 (define (process-js-file filename)
-  (with-input-from-file filename
-    (parse-tokens)))
+  (print "Parsing file: " filename)
+  (let ((parsed-file (with-input-from-file filename parse-tokens)))
+    (print parsed-file)))
 
 (define (match-number? string)
-  (string->nummber string))
+  (string->number string))
 
 (define (match-identifier? string)
   (string-match "[a-zA-Z_$]+[0-9a-zA-Z_]*" string))
@@ -125,7 +126,8 @@
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
 ;; a token is recognized
 (define (predicate-identify-js-token character)
-  (string-match "[a-z0-9A-Z]*" character))
+  (or (char-alphabetic? character)
+      (char-numeric? character)))
 
 (define (next-token)
   (read-token predicate-identify-js-token))
@@ -133,14 +135,16 @@
 ;; Actually parses the given javascript file. Gets input from the
 ;; current-input-port
 (define (parse-tokens)
-  (let ((current-token (next-token))
-        (if (current-token)
-            (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,token)
-                     (match-identifier? current-token) `(identifier ,token)
-                     (match-number? current-token) `(number ,token)
-                     (match-comment? current-token) `(comment ,token))
-                     (else (cons (parse-tokens))))))
-              (build-html-formatting (car result) (cdr result)))))))
+  (let ((current-token (next-token)))
+    (if current-token
+        (begin
+          (print current-token)
+          (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,current-token)
+                               (match-identifier? current-token) `(identifier ,current-token)
+                               (match-number? current-token) `(number ,current-token)
+                               (match-comment? current-token) `(comment ,current-token))
+                              (else (cons (parse-tokens))))))
+            (build-html-formatting (car result) (cdr result)))))))
                   
 
 (define (main args)
@@ -148,6 +152,7 @@
       (display-usage #f)
       (begin
         (parse-command-line args)
+        (print "Command-line parsing complete.")
         (if (null? input-files)
             (display-usage)
             (map process-js-file input-files)))))
