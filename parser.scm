@@ -83,14 +83,20 @@
     (number "#0000FF")
     (comment "#AAAAAA" ('italics))))
 
+(define (apply-formatting text type)
+  (print "Formatting: " type)
+  (print "Text: " text)
+  (case (car type)
+    ('bold (string-append "<b>" text "</b>"))
+    ('italics (string-append "<i>" text "</i>"))
+    (else text)))
+
 (define (html-font text color . attributes)
-  (let ((new-text (map (lambda (x)
-                         (print "X: " x)
-                         (case x
-                           ('bold (string-append "<b>" text "</b>"))
-                           ('italics (string-append "<i>" text "</i>")))) attributes)))
+  (let ((new-text (apply apply-formatting text attributes))) 
     (print "New text: " new-text)
-    (string-append "<font color=" color ">" new-text "</font>")))
+    (if (< (string-length color) 0)
+        (string-append "<font color=" color ">" new-text "</font>")
+        new-text)))
 
 (define (build-html-formatting type text)
       (let ((attributes (assq type syntax-highlight-table)))
@@ -139,12 +145,13 @@
     (if current-token
         (begin
           (print current-token)
-          (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,current-token)
-                               (match-identifier? current-token) `(identifier ,current-token)
-                               (match-number? current-token) `(number ,current-token)
-                               (match-comment? current-token) `(comment ,current-token))
+          (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,current-token))
+                              ((match-identifier? current-token) `(identifier ,current-token))
+                              ((match-number? current-token) `(number ,current-token))
+                              ((match-comment? current-token) `(comment ,current-token))
                               (else (cons (parse-tokens))))))
-            (build-html-formatting (car result) (cdr result)))))))
+            (print "Match: " (car result))
+            (build-html-formatting (car result) (cadr result)))))))
                   
 
 (define (main args)
