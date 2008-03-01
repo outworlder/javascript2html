@@ -78,17 +78,17 @@
 (define syntax-highlight-table
   '(
     (identifier "#00FF00")
-    (reserved-word "" ('bold))
+    (reserved-word "" (bold))
     (string "#FF0000")
     (number "#0000FF")
-    (comment "#AAAAAA" ('italics))))
+    (comment "#AAAAAA" (italics))))
 
 (define (apply-formatting text type)
-  (print "Formatting: " type)
+  (print "Formatting: " (car type))
   (print "Text: " text)
   (case (car type)
-    ('bold (string-append "<b>" text "</b>"))
-    ('italics (string-append "<i>" text "</i>"))
+    ((bold) (string-append "<b>" text "</b>"))
+    ((italics) (string-append "<i>" text "</i>"))
     (else text)))
 
 (define (html-font text color . attributes)
