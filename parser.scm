@@ -1,8 +1,6 @@
 ;; Javascript pretty printer (to HTML)
-;; Stephen Pedrosa Eilert (9911081), 2008
+;; Stephen Pedrosa Eilert - 9911081
 ;; Construção de Compiladores 2008.1 - Riverson Rios
-
-;; Including the command-line file
 
 ;; Command line format:
 ;; javascript2html <-o output file> input_file
@@ -10,9 +8,11 @@
 ;; Loading the Regular Expressions library
 (require 'regex)
 
+;; Flag to indicate whether or not to output to the screen
 (define output-to-file
   #f)
 
+;; Output filename, if applicable.
 (define output-filename
   "")
 
@@ -20,6 +20,11 @@
 (define input-files
   '())
 
+;; Flag to indicate if we are generating a CSS file, or a plain HTML one
+(define generate-css
+  #f)
+
+;; List of javascript reserved words.
 (define javascript-reserved-words
   '("abstract" "boolean" "break" "byte" "case" "catch" "char" "class" "const"
 "continue" "debugger" "default" "delete" "do" "double" "else" "enum" "export"
@@ -29,9 +34,7 @@
 "super" "switch" "synchronized" "this" "throw" "throws" "transient" "true"
 "try" "typeof" "var" "void" "volatile" "while" "with"))
 
-(define javascript-delimiters
-  '(#\, #\. #\{ #\} #\( #\) #\; #\space #\newline))
-
+;; Table that contains the syntax highlighting conventions
 (define syntax-highlight-table
   '(
     (identifier "#00FF00" (none))
@@ -117,6 +120,7 @@
                           (cdr parameters))))))
         (parse-command-line result)))))
 
+;; Applies formatting tags (currently bold and italics)
 (define (apply-formatting text type)
   (if (null? type)
       text
@@ -125,28 +129,38 @@
         ((italics) (string-append "<i>" text "</i>"))
         (else text))))
 
+;; Apply font tags
 (define (html-font text color . attributes)
   (let ((new-text (apply apply-formatting text attributes)))
     (if (> (string-length color) 0)
         (string-append "<font color=" color ">" new-text "</font>")
         new-text)))
 
+;; Locates the appropriate highlighting definitions and call the formatting
+;; functions.
 (define (build-html-formatting type text)
   (let ((attributes (assq type syntax-highlight-table)))
+    (case type
+      ((comment) (set! text (string-append text "<br>")))
+      ((newline) (set! text "<br>"))
+      ((whitespace) (set! text "&nbsp;")))
     (if attributes
         (let ((color (cadr attributes))
               (formatting (caddr attributes)))
           (html-font text color formatting))
         text)))
 
+;; Convenience function to split the token pair into two arguments.
 (define (html-format-token token)
   (print (build-html-formatting (car token) (cadr token)) " "))
 
+;; Apply the html-format-token function for all tokens in the input.
 (define (tokens->html token-list)
   (with-output-to-string
    (lambda ()
      (map html-format-token token-list))))
 
+;; ---------------------------------------------------------------------
 (define (match-number? str)
   (string->number str))
 
@@ -163,15 +177,26 @@
 (define (match-newline? str)
   (string=? (string #\newline) str))
 
+(define (match-whitespace? str)
+  (string=? (string #\space) str))
+    
+;; TODO: Complete this
+(define (match-js-string? str)
+  #f)
+;; ---------------------------------------------------------------------
+
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
 ;; a token is recognized
 (define (predicate-identify-js-token character)
   (or (char-alphabetic? character)
       (char-numeric? character)))
 
+;; Convenience function to read the next token
 (define (next-token)
   (my-read-token predicate-identify-js-token))
 
+;; Function that reads characters from [port] until end of file, or the 
+;; delimiters are found.
 (define (read-until delimiter port)
   (let ((buffer (string)))
     (let loop()
@@ -183,32 +208,44 @@
                 buffer
                 (loop)))))))
 
+;; Detects coments and returns them as a single string block. This prevents
+;; the other functions from recognizing tokens inside comments.
 (define (check-and-return-comments identifiers port)
   (if (string=? identifiers "//")
-      (string-append identifiers (read-line port))
+      (begin
+        (read-char port) ;; Throws away next char - already read
+        (string-append identifiers (read-line port)))
       (if (string=? identifiers "/*")
-          (string-append identifiers (read-until "*/" port))
+          (begin
+            (read-char port) ;; Throws away next char - already read
+            (string-append identifiers (read-until "*/" port)))
           #f)))
 
+;; Reads tokens from the input file. Calls predicate [pred] to check valid
+;; characters.
 (define (my-read-token pred)
-  (let ((buffer (string)))
-    (let loop ()
-      (let ((char (read-char (current-input-port))))
-        (if (eof-object? char)
-            char
-            (let ((next-char (peek-char (current-input-port))))
-              (unless (eof-object? next-char)
-                (let ((comments (check-and-return-comments (string char next-char) (current-input-port))))
-                  (if comments
-                      comments)))
-              (if (pred char)
-                  (begin
-                    (set! buffer (string-append buffer (string char)))
-                    (if (pred next-char)
-                        (loop)
-                        buffer))
-                  (string char))))))))
+  (call-with-current-continuation
+   (lambda(exit)
+     (let ((buffer (string)))
+       (let loop ()
+         (let ((char (read-char (current-input-port))))
+           (if (eof-object? char)
+               char
+               (let ((next-char (peek-char (current-input-port))))
+                 (unless (eof-object? next-char)
+                   (let ((comments (check-and-return-comments (string char next-char) (current-input-port))))
+                     (if comments
+                         (exit comments))))
+                 (if (pred char)
+                     (begin
+                       (set! buffer (string-append buffer (string char)))
+                       (if (pred next-char)
+                           (loop)
+                           buffer))
+                     (string char))))))))))
 
+;; Repeatedly calls parse-token and collects the results of the multiple
+;; invocations. Could probably be made simpler(or redundant) using call/cc.
 (define (parse-tokens)
   (let ((buffer (list)))
     (let loop()
@@ -222,18 +259,21 @@
                   buffer))
             buffer)))))
 
-;; Actually parses the given javascript file. Gets input from the
-;; current-input-port
+;; Matches the token strings to their corresponding classes.
 (define (parse-token current-token)
   (if current-token
       (let ((result (cond ((match-reserved-word? current-token) `((reserved-word ,current-token)))
                           ((match-identifier? current-token) `((identifier ,current-token)))
                           ((match-number? current-token) `((number ,current-token)))
                           ((match-comment? current-token) `((comment ,current-token)))
-                          ((match-newline? current-token) '((newline "<br>")))
+                          ((match-newline? current-token) '((newline ,current-token)))
+                          ((match-whitespace? current-token) '((whitespace ,current-token)))
                           (else `((other, current-token))))))
         result)))
 
+;; Sets the input-port to the current input file and calls parse-tokens.
+;; After the token list is created, assembles the header, footer and the body.
+;; Body is made using tokens->html
 (define (process-js-file filename)
   (print "Parsing file: " filename)
   (let ((process (lambda ()
