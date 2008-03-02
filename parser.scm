@@ -81,30 +81,33 @@
     (reserved-word "" (bold))
     (string "#FF0000")
     (number "#0000FF")
-    (comment "#AAAAAA" (italics))))
+    (comment "#AAAAAA" (italics))
+    (other "" ())))
 
 (define (apply-formatting text type)
-  (print "Formatting: " (car type))
+  (print "Formatting: " type)
   (print "Text: " text)
-  (case (car type)
-    ((bold) (string-append "<b>" text "</b>"))
-    ((italics) (string-append "<i>" text "</i>"))
-    (else text)))
+  (if (null? type)
+      text
+      (case (car type)
+        ((bold) (string-append "<b>" text "</b>"))
+        ((italics) (string-append "<i>" text "</i>"))
+        (else text))))
 
 (define (html-font text color . attributes)
-  (let ((new-text (apply apply-formatting text attributes))) 
+  (let ((new-text (apply apply-formatting text attributes)))
     (print "New text: " new-text)
     (if (< (string-length color) 0)
         (string-append "<font color=" color ">" new-text "</font>")
         new-text)))
 
 (define (build-html-formatting type text)
-      (let ((attributes (assq type syntax-highlight-table)))
-        (if attributes
-            (let ((color (cadr attributes))
-                  (formatting (caddr attributes)))
-              (print "Color: " color "Formatting: " formatting)
-            (html-font text color formatting)))))
+  (let ((attributes (assq type syntax-highlight-table)))
+    (if attributes
+        (let ((color (cadr attributes))
+              (formatting (caddr attributes)))
+          (print "Color: " color "Formatting: " formatting)
+          (html-font text color formatting)))))
 
 
 ;; List of input files, initially empty
@@ -115,6 +118,8 @@
   (print "Parsing file: " filename)
   (let ((parsed-file (with-input-from-file filename parse-tokens)))
     (print parsed-file)))
+
+;; (build-html-formatting (car result) (cadr result)
 
 (define (match-number? string)
   (string->number string))
@@ -138,21 +143,26 @@
 (define (next-token)
   (read-token predicate-identify-js-token))
 
+(define (parse-tokens)
+  (let ((token (next-token)))
+    (let ((result (parse-token token)))
+      (if result
+          (begin
+            (print result)
+            (append (parse-tokens) result))
+          result))))
+
 ;; Actually parses the given javascript file. Gets input from the
 ;; current-input-port
-(define (parse-tokens)
-  (let ((current-token (next-token)))
-    (if current-token
-        (begin
-          (print current-token)
-          (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,current-token))
-                              ((match-identifier? current-token) `(identifier ,current-token))
-                              ((match-number? current-token) `(number ,current-token))
-                              ((match-comment? current-token) `(comment ,current-token))
-                              (else (cons (parse-tokens))))))
-            (print "Match: " (car result))
-            (build-html-formatting (car result) (cadr result)))))))
-                  
+(define (parse-token current-token)
+  (if current-token
+      (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,current-token))
+                          ((match-identifier? current-token) `(identifier ,current-token))
+                          ((match-number? current-token) `(number ,current-token))
+                          ((match-comment? current-token) `(comment ,current-token))
+                          (else `(other, current-token)))))
+        result)))
+
 
 (define (main args)
   (if (null? args)
