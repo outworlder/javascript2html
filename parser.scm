@@ -42,6 +42,7 @@
     (string "#FF0000" (none))
     (number "#0000FF" (none))
     (comment "#AAAAAA" (italics))
+    (js-string "#FF0000" (none))
     (other "" (none))))
 
 (define html-header 
@@ -180,9 +181,8 @@
 (define (match-whitespace? str)
   (string=? (string #\space) str))
     
-;; TODO: Complete this
 (define (match-js-string? str)
-  #f)
+  (string-match "\".*\"|'.*'" str))
 ;; ---------------------------------------------------------------------
 
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
@@ -225,6 +225,12 @@
             (string-append identifiers (read-until "*/" port)))
           #f)))
 
+(define (check-and-return-string input port)
+  (if (or (char=? #\" input)
+          (char=? #\' input))
+      (string-append (string input) (read-until (string input) port))
+      #f))
+
 ;; Reads tokens from the input file. Calls predicate [pred] to check valid
 ;; characters.
 (define (my-read-token pred)
@@ -239,7 +245,10 @@
                  (unless (eof-object? next-char)
                    (let ((comments (check-and-return-comments (string char next-char) (current-input-port))))
                      (if comments
-                         (exit comments))))
+                         (exit comments)))
+                   (let ((possible-js-string (check-and-return-string char (current-input-port))))
+                     (if possible-js-string
+                         (exit possible-js-string))))
                  (if (pred char)
                      (begin
                        (set! buffer (string-append buffer (string char)))
@@ -269,9 +278,10 @@
       (let ((result (cond ((match-reserved-word? current-token) `((reserved-word ,current-token)))
                           ((match-identifier? current-token) `((identifier ,current-token)))
                           ((match-number? current-token) `((number ,current-token)))
+                          ((match-js-string? current-token) `((js-string ,current-token)))
                           ((match-comment? current-token) `((comment ,current-token)))
-                          ((match-newline? current-token) '((newline ,current-token)))
-                          ((match-whitespace? current-token) '((whitespace ,current-token)))
+                          ((match-newline? current-token) `((newline ,current-token)))
+                          ((match-whitespace? current-token) `((whitespace ,current-token)))
                           (else `((other, current-token))))))
         result)))
 
@@ -299,4 +309,4 @@
 
 (main (cdr (argv)))
 
-;;(string-match "\".*\""  "\"this is a fucking'haha' string\"")
+(string-match "\".*\"|'.*'"  "'startTime()'")
