@@ -10,9 +10,60 @@
 ;; Loading the Regular Expressions library
 (require 'regex)
 
+(define output-to-file
+  #f)
+
+(define output-filename
+  "")
+
+;; List of input files, initially empty
+(define input-files
+  '())
+
+(define javascript-reserved-words
+  '("abstract" "boolean" "break" "byte" "case" "catch" "char" "class" "const"
+"continue" "debugger" "default" "delete" "do" "double" "else" "enum" "export"
+"extends" "false" "final" "finally" "float" "for" "function" "goto" "if"
+"implements" "import" "in" "instanceof" "int" "interface" "long" "native"
+"new" "null" "package" "private" "protected" "public" "return" "short" "static"
+"super" "switch" "synchronized" "this" "throw" "throws" "transient" "true"
+"try" "typeof" "var" "void" "volatile" "while" "with"))
+
+(define javascript-delimiters
+  '(#\, #\. #\{ #\} #\( #\) #\; #\space #\newline))
+
+(define syntax-highlight-table
+  '(
+    (identifier "#00FF00" (none))
+    (reserved-word "" (bold))
+    (string "#FF0000" (none))
+    (number "#0000FF" (none))
+    (comment "#AAAAAA" (italics))
+    (other "" (none))))
+
+(define html-header 
+  "<!DOCTYPE
+ html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
+ \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\"
+     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
+     xsi:schemaLocation=\"http://www.w3.org/MarkUp/SCHEMA/xhtml11.xsd\"
+     xml:lang=\"en\" >
+<head>
+ <title>Javascript pretty printer - CCO08 </title>
+</head>
+<body>")
+
+(define html-footer
+  "</body>
+</html>")
+
 ;; Redirects standard output to a file. Currently does nothing.
 (define (process-output-command arguments)
-  (print "Output command, arguments:" arguments)
+  (set! output-to-file #t)
+  (if (null? arguments)
+      (error "Insufficient arguments for \"-o\". Aborting."))
+  (set! output-filename (car arguments))
   (cdr arguments)) ; Eat one argument
 
 ;; Enables CSS generation. Also, doing nothing.
@@ -66,47 +117,7 @@
                           (cdr parameters))))))
         (parse-command-line result)))))
 
-(define javascript-reserved-words
-  '("abstract" "boolean" "break" "byte" "case" "catch" "char" "class" "const"
-"continue" "debugger" "default" "delete" "do" "double" "else" "enum" "export"
-"extends" "false" "final" "finally" "float" "for" "function" "goto" "if"
-"implements" "import" "in" "instanceof" "int" "interface" "long" "native"
-"new" "null" "package" "private" "protected" "public" "return" "short" "static"
-"super" "switch" "synchronized" "this" "throw" "throws" "transient" "true"
-"try" "typeof" "var" "void" "volatile" "while" "with"))
-
-
-(define syntax-highlight-table
-  '(
-    (identifier "#00FF00")
-    (reserved-word "" (bold))
-    (string "#FF0000")
-    (number "#0000FF")
-    (comment "#AAAAAA" (italics))
-    (other "" ())))
-
-(define html-header 
-  "<!DOCTYPE
- html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
- \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">
-<html xmlns=\"http://www.w3.org/1999/xhtml\"
-     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
-     xsi:schemaLocation=\"http://www.w3.org/MarkUp/SCHEMA/xhtml11.xsd\"
-     xml:lang=\"en\" >
-<head>
- Javascript pretty printer - CCO08
-</head>
-<body>")
-
-(define html-footer
-  "</body>
-</head>
-</html>")
-
-
 (define (apply-formatting text type)
-  (print "Formatting: " type)
-  (print "Text: " text)
   (if (null? type)
       text
       (case (car type)
@@ -116,8 +127,7 @@
 
 (define (html-font text color . attributes)
   (let ((new-text (apply apply-formatting text attributes)))
-    (print "New text: " new-text)
-    (if (< (string-length color) 0)
+    (if (> (string-length color) 0)
         (string-append "<font color=" color ">" new-text "</font>")
         new-text)))
 
@@ -126,44 +136,55 @@
     (if attributes
         (let ((color (cadr attributes))
               (formatting (caddr attributes)))
-          (print "Color: " color "Formatting: " formatting)
           (html-font text color formatting)))))
 
+(define (html-format-token token)
+  (print (string-append (build-html-formatting (car token) (cadr token)) " ")))
 
-;; List of input files, initially empty
-(define input-files
-  '())
+(define (tokens->html token-list)
+  (with-output-to-string
+   (lambda ()
+     (map html-format-token token-list))))
 
-(define (process-js-file filename)
-  (print "Parsing file: " filename)
-  (let ((parsed-file (with-input-from-file filename parse-tokens)))
-    (print parsed-file)))
+(define (match-number? str)
+  (string->number str))
 
-;; (build-html-formatting (car result) (cadr result)
+(define (match-identifier? str)
+  (string-match "[a-zA-Z_$]+[0-9a-zA-Z_]*" str))
 
-(define (match-number? string)
-  (string->number string))
+(define (match-reserved-word? str)
+  (member str javascript-reserved-words))
 
-(define (match-identifier? string)
-  (string-match "[a-zA-Z_$]+[0-9a-zA-Z_]*" string))
-
-(define (match-reserved-word? string)
-  (member string javascript-reserved-words))
-
-(define (match-comment? string)
-  (or (string-match "^[/]{2}.*" string)
-      (string-match "^/*(.*)*/" string)))
+(define (match-comment? str)
+  (or (string-match "^[/]{2}.*" str)
+      (string-match "^/*(.*)*/" str)))
 
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
 ;; a token is recognized
 (define (predicate-identify-js-token character)
-  (not (char-whitespace? character)))
-
-;;(define (next-token)
-;;  (read-token predicate-identify-js-token))
+  (or (char-alphabetic? character)
+      (char-numeric? character)))
 
 (define (next-token)
   (my-read-token predicate-identify-js-token))
+
+(define (read-until delimiter port)
+  (let ((buffer (string)))
+    (let loop()
+      (if (eof-object? (peek-char port))
+          buffer
+          (begin
+            (set! buffer (string-append buffer (string (read-char port))))
+            (if (substring-index delimiter buffer)
+                buffer
+                (loop)))))))
+
+(define (check-and-return-comments identifiers port)
+  (if (string=? identifiers "//")
+      (string-append identifiers (read-line port))
+      (if (string=? identifiers "/*")
+          (string-append identifiers (read-until "*/" port))
+          #f)))
 
 (define (my-read-token pred)
   (let ((buffer (string)))
@@ -171,11 +192,18 @@
       (let ((char (read-char (current-input-port))))
         (if (eof-object? char)
             char
-            (if (pred char)
-                (begin
-                  (set! buffer (string-append buffer (string char)))
-                  (loop))
-                buffer))))))
+            (let ((next-char (peek-char (current-input-port))))
+              (unless (eof-object? next-char)
+                (let ((comments (check-and-return-comments (string char next-char) (current-input-port))))
+                  (if comments
+                      comments)))
+              (if (pred char)
+                  (begin
+                    (set! buffer (string-append buffer (string char)))
+                    (if (pred next-char)
+                        (loop)
+                        buffer))
+                  (string char))))))))
 
 (define (parse-tokens)
   (let ((buffer (list)))
@@ -185,23 +213,29 @@
             (let ((result (parse-token token)))
               (if result
                   (begin
-                    (print result)
                     (set! buffer (append buffer result))
                     (loop))
-                  buffer)))))))
+                  buffer))
+            buffer)))))
 
 ;; Actually parses the given javascript file. Gets input from the
 ;; current-input-port
 (define (parse-token current-token)
   (if current-token
-      (let ((result (cond ((match-reserved-word? current-token) `(reserved-word ,current-token))
-                          ((match-identifier? current-token) `(identifier ,current-token))
-                          ((match-number? current-token) `(number ,current-token))
-                          ((match-comment? current-token) `(comment ,current-token))
-                          (else `(other, current-token)))))
+      (let ((result (cond ((match-reserved-word? current-token) `((reserved-word ,current-token)))
+                          ((match-identifier? current-token) `((identifier ,current-token)))
+                          ((match-number? current-token) `((number ,current-token)))
+                          ((match-comment? current-token) `((comment ,current-token)))
+;;                          ((match-newline? current-token) '((newline #\newline)))
+                          (else `((other, current-token))))))
         result)))
 
-
+(define (process-js-file filename)
+  (print "Parsing file: " filename)
+  ((let ((parsed-file (with-input-from-file filename parse-tokens)))
+                      (print parsed-file)
+                      (print html-header (tokens->html parsed-file) html-footer))))
+  
 (define (main args)
   (if (null? args)
       (display-usage #f)
@@ -214,4 +248,3 @@
 
 (main (cdr (argv)))
 
-;;(string-match "[a-z0-9A-Z]*|^[{}./+,;()%]" "teste.")
