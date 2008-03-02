@@ -101,7 +101,7 @@
 (define html-footer
   "</body>
 </head>
-</html")
+</html>")
 
 
 (define (apply-formatting text type)
