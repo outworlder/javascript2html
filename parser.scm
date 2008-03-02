@@ -85,6 +85,25 @@
     (comment "#AAAAAA" (italics))
     (other "" ())))
 
+(define html-header 
+  "<!DOCTYPE
+ html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
+ \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\"
+     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
+     xsi:schemaLocation=\"http://www.w3.org/MarkUp/SCHEMA/xhtml11.xsd\"
+     xml:lang=\"en\" >
+<head>
+ Javascript pretty printer - CCO08
+</head>
+<body>")
+
+(define html-footer
+  "</body>
+</head>
+</html")
+
+
 (define (apply-formatting text type)
   (print "Formatting: " type)
   (print "Text: " text)
