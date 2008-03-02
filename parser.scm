@@ -160,6 +160,9 @@
   (or (string-match "^[/]{2}.*" str)
       (string-match "^/*(.*)*/" str)))
 
+(define (match-newline? str)
+  (string=? (string #\newline) str))
+
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
 ;; a token is recognized
 (define (predicate-identify-js-token character)
@@ -227,7 +230,7 @@
                           ((match-identifier? current-token) `((identifier ,current-token)))
                           ((match-number? current-token) `((number ,current-token)))
                           ((match-comment? current-token) `((comment ,current-token)))
-;;                          ((match-newline? current-token) '((newline #\newline)))
+                          ((match-newline? current-token) '((newline "<br>")))
                           (else `((other, current-token))))))
         result)))
 
