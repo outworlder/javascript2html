@@ -136,10 +136,11 @@
     (if attributes
         (let ((color (cadr attributes))
               (formatting (caddr attributes)))
-          (html-font text color formatting)))))
+          (html-font text color formatting))
+        text)))
 
 (define (html-format-token token)
-  (print (string-append (build-html-formatting (car token) (cadr token)) " ")))
+  (print (build-html-formatting (car token) (cadr token)) " "))
 
 (define (tokens->html token-list)
   (with-output-to-string
@@ -232,9 +233,8 @@
 
 (define (process-js-file filename)
   (print "Parsing file: " filename)
-  ((let ((parsed-file (with-input-from-file filename parse-tokens)))
-                      (print parsed-file)
-                      (print html-header (tokens->html parsed-file) html-footer))))
+  (let ((parsed-file (with-input-from-file filename parse-tokens)))
+                      (print html-header (tokens->html parsed-file) html-footer)))
   
 (define (main args)
   (if (null? args)
