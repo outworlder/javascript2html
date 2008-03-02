@@ -147,25 +147,29 @@
   (my-read-token predicate-identify-js-token))
 
 (define (my-read-token pred)
-  (if (not (eof-object? (current-input-port)))
-      (let ((buffer (string)))
-        (let loop ()
-          (let ((char (read-char (current-input-port))))
+  (let ((buffer (string)))
+    (let loop ()
+      (let ((char (read-char (current-input-port))))
+        (if (eof-object? char)
+            char
             (if (pred char)
                 (begin
                   (set! buffer (string-append buffer (string char)))
                   (loop))
-                buffer))))
-      (string)))
+                buffer))))))
 
 (define (parse-tokens)
-  (let ((token (next-token)))
-    (let ((result (parse-token token)))
-      (if result
-          (begin
-            (print result)
-            (append (parse-tokens) result))
-          result))))
+  (let ((buffer (list)))
+    (let loop()
+      (let ((token (next-token)))
+        (if (not (eof-object? token))
+            (let ((result (parse-token token)))
+              (if result
+                  (begin
+                    (print result)
+                    (set! buffer (append buffer result))
+                    (loop))
+                  buffer)))))))
 
 ;; Actually parses the given javascript file. Gets input from the
 ;; current-input-port
