@@ -186,10 +186,14 @@
 ;; ---------------------------------------------------------------------
 
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
-;; a token is recognized
+;; a token is recognized.
+;; Added pecial checking for quotes and double quotes, since they are valid
+;; characters.
 (define (predicate-identify-js-token character)
   (or (char-alphabetic? character)
-      (char-numeric? character)))
+      (char-numeric? character)
+      (char=? #\" character)
+      (char=? #\' character)))
 
 ;; Convenience function to read the next token
 (define (next-token)
@@ -295,3 +299,4 @@
 
 (main (cdr (argv)))
 
+;;(string-match "\".*\""  "\"this is a fucking'haha' string\"")
