@@ -233,8 +233,12 @@
 
 (define (process-js-file filename)
   (print "Parsing file: " filename)
-  (let ((parsed-file (with-input-from-file filename parse-tokens)))
-                      (print html-header (tokens->html parsed-file) html-footer)))
+  (let ((process (lambda ()
+                   (let ((parsed-file (with-input-from-file filename parse-tokens)))
+                     (print html-header (tokens->html parsed-file) html-footer)))))
+    (if output-to-file
+        (with-output-to-file output-filename process)
+        (process))))
   
 (define (main args)
   (if (null? args)
