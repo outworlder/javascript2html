@@ -308,5 +308,3 @@
             (map process-js-file input-files)))))
 
 (main (cdr (argv)))
-
-(string-match "\".*\"|'.*'"  "'startTime()'")
