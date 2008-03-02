@@ -75,6 +75,7 @@
 "super" "switch" "synchronized" "this" "throw" "throws" "transient" "true"
 "try" "typeof" "var" "void" "volatile" "while" "with"))
 
+
 (define syntax-highlight-table
   '(
     (identifier "#00FF00")
@@ -137,11 +138,25 @@
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
 ;; a token is recognized
 (define (predicate-identify-js-token character)
-  (or (char-alphabetic? character)
-      (char-numeric? character)))
+  (not (char-whitespace? character)))
+
+;;(define (next-token)
+;;  (read-token predicate-identify-js-token))
 
 (define (next-token)
-  (read-token predicate-identify-js-token))
+  (my-read-token predicate-identify-js-token))
+
+(define (my-read-token pred)
+  (if (not (eof-object? (current-input-port)))
+      (let ((buffer (string)))
+        (let loop ()
+          (let ((char (read-char (current-input-port))))
+            (if (pred char)
+                (begin
+                  (set! buffer (string-append buffer (string char)))
+                  (loop))
+                buffer))))
+      (string)))
 
 (define (parse-tokens)
   (let ((token (next-token)))
