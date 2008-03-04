@@ -96,7 +96,7 @@
   (when error
     (print "Error: " error)
     (newline))
-  (print "Usage: javascript2html [-o output_file] input_file")
+  (print "Usage: js2html [-o output_file] input_file")
   (newline))
 
 ;; Macro to make it easier to call an operation returned by 
