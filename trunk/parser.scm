@@ -236,8 +236,7 @@
 (define (my-read-token pred)
   (call-with-current-continuation
    (lambda(exit)
-     (let ((buffer (string)))
-       (let loop ()
+       (let loop ((buffer (string)))
          (let ((char (read-char (current-input-port))))
            (if (eof-object? char)
                char
@@ -250,27 +249,22 @@
                      (if possible-js-string
                          (exit possible-js-string))))
                  (if (pred char)
-                     (begin
-                       (set! buffer (string-append buffer (string char)))
                        (if (pred next-char)
-                           (loop)
-                           buffer))
-                     (string char))))))))))
+                           (loop (string-append buffer (string char)))
+                           (string-append buffer (string char)))
+                     (string char)))))))))
 
 ;; Repeatedly calls parse-token and collects the results of the multiple
 ;; invocations. Could probably be made simpler(or redundant) using call/cc.
 (define (parse-tokens)
-  (let ((buffer (list)))
-    (let loop()
+    (let loop((buffer (list)))
       (let ((token (next-token)))
         (if (not (eof-object? token))
             (let ((result (parse-token token)))
               (if result
-                  (begin
-                    (set! buffer (append buffer result))
-                    (loop))
+                    (loop (append buffer result))
                   buffer))
-            buffer)))))
+            buffer))))
 
 ;; Matches the token strings to their corresponding classes.
 (define (parse-token current-token)
