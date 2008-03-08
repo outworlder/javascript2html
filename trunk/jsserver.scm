@@ -6,7 +6,7 @@
 (define start-page
   (ws:page
    (head "Javascript Pretty Printer"
-         (body (hr) "Entre com o código Javascript Abaixo:"
+         (body (hr) "Entre com o c&oacute;digo Javascript abaixo:"
                (input 'type "textbox" )
                (input 'type "submit" 'value "Enviar"))) charset:"utf-8"))
 
