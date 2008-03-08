@@ -12,7 +12,7 @@
 
 (define (main-cgi)
   (print "Content-type: text/html")
-  (print)
+  (newline)
   (print start-page))
   
 (main-cgi)
