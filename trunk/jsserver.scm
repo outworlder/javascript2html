@@ -2,7 +2,6 @@
 ;; 
 
 (require 'web-scheme)
-(require 'stream-cgi)
 
 (define start-page
   (ws:page
@@ -11,7 +10,9 @@
                (input 'type "textbox" )
                (input 'type "submit" 'value "Enviar")))))
 
-(define (process-page query post cookies)
-  start-page)
-
-(cgi-main process-page)
+(define (main-cgi)
+  (print "Content-type: text/html")
+  (print)
+  (print start-page))
+  
+(main-cgi)
