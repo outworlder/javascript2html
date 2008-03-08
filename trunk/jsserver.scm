@@ -8,7 +8,7 @@
    (head "Javascript Pretty Printer"
          (body (hr) "Entre com o código Javascript Abaixo:"
                (input 'type "textbox" )
-               (input 'type "submit" 'value "Enviar")))))
+               (input 'type "submit" 'value "Enviar"))) charset:"utf-8"))
 
 (define (main-cgi)
   (print "Content-type: text/html")
