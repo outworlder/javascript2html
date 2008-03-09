@@ -8,6 +8,9 @@
 ;; Loading the Regular Expressions library
 (require 'regex)
 
+;; Loading SRFI-13 (String enhancements)
+(require 'srfi-13)
+
 ;; Flag to indicate whether or not to output to the screen
 (define output-to-file
   #f)
@@ -132,7 +135,7 @@
 
 ;; Apply font tags
 (define (html-font text color . attributes)
-  (let ((new-text (apply-formatting text attributes)))
+  (let ((new-text (apply apply-formatting text attributes)))
     (if (> (string-length color) 0)
         (string-append "<font color=" color ">" new-text "</font>")
         new-text)))
@@ -162,18 +165,35 @@
      (map html-format-token token-list))))
 
 ;; ---------------------------------------------------------------------
+
+;; Regular expressions were removed.
+
+(define (predicate-identify-identifier character)
+  (or (char-alphabetic? character)
+      (char-numeric? character)))
+
 (define (match-number? str)
   (string->number str))
 
 (define (match-identifier? str)
-  (string-match "[a-zA-Z_$]+[0-9a-zA-Z_]*" str))
-
+  (if (string-null? str)
+      #f)
+  (if (char-alphabetic? (string-ref str 0))
+      (string-every predicate-identify-identifier str 1)
+      #f))
+      
 (define (match-reserved-word? str)
   (member str javascript-reserved-words))
 
 (define (match-comment? str)
-  (or (string-match "^[/]{2}.*" str)
-      (string-match "^/*(.*)*/" str)))
+  (if (string-null? str)
+      #f
+      (if (< (string-length str) 2)
+          #f
+          (or (string=? "//" (string-take str 2))
+              (if (string=? "/*" (string-take str 2))
+                  (string=? "*/"(string-take-right str 2))
+                  #f)))))
 
 (define (match-newline? str)
   (string=? (string #\newline) str))
@@ -182,7 +202,16 @@
   (string=? (string #\space) str))
     
 (define (match-js-string? str)
-  (string-match "\".*\"|'.*'" str))
+  (if (string-null? str)
+      #f
+      (if (< (string-length str) 2)
+          #f
+          (if (string=? "\"" (string-take str 1))
+              (string=? "\"" (string-take str 1))
+              (if (string=? "'" (string-take str 1))
+                  (string=? "'" (string-take str 1))
+                  #f)))))
+
 ;; ---------------------------------------------------------------------
 
 ;; Recognizes Javascript tokens (as required by read-token). Returns #f when
