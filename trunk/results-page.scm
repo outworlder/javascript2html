@@ -4,6 +4,8 @@
 (require 'web-scheme)
 (require 'cgi-util)
 
+(include "js2html.scm")
+
 (define results-page
 (ws:page
  (head "Javascript Pretty Printer - Resultados"
@@ -20,6 +22,6 @@
   (print "Content-type: text/html")
   (newline)
   (let ((jssource (CGI:lookup 'jssource 'string)))
-    (print (show-results-page jssource))))
+    (print (show-results-page (process-js-from-web jssource)))))
 
 (main-cgi argv)

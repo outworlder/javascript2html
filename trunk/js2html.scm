@@ -290,6 +290,12 @@
     (if output-to-file
         (with-output-to-file output-filename process)
         (process))))
+
+(define (process-js-from-web js-text)
+    (let ((process (lambda ()
+                   (let ((parsed-file (with-input-from-string js-text parse-tokens)))
+                     (print html-header (tokens->html parsed-file) html-footer)))))
+        (process)))
   
 (define (main args)
   (if (null? args)
