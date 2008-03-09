@@ -307,4 +307,4 @@
             (display-usage)
             (map process-js-file input-files)))))
 
-(main (cdr (argv)))
+;; (main (cdr (argv)))
