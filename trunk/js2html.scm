@@ -132,7 +132,7 @@
 
 ;; Apply font tags
 (define (html-font text color . attributes)
-  (let ((new-text (apply apply-formatting text attributes)))
+  (let ((new-text (apply-formatting text attributes)))
     (if (> (string-length color) 0)
         (string-append "<font color=" color ">" new-text "</font>")
         new-text)))
