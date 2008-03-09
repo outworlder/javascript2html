@@ -2,6 +2,7 @@
 ;; 
 
 (require 'web-scheme)
+(require 'cgi-util)
 
 (define results-page
 (ws:page
@@ -15,10 +16,10 @@
       (hr)
       formatted-js ) page-title: "Resultado" charset: "utf-8" ))
 
-(define (main-cgi)
+(define (main-cgi argv)
   (print "Content-type: text/html")
   (newline)
-  (ws:with-get-vars (jssource)
-                     (print (show-results-page jssource))))
+  (let ((jssource (CGI:lookup 'jssource 'string)))
+    (print (show-results-page jssource))))
 
-(main-cgi)
+(main-cgi argv)
