@@ -6,7 +6,7 @@
 (define start-page
   (ws:page
    (p
-    (form 'action "results-page.cgi" 'method "post"
+    (form 'action "results-page.cgi" 'method "get"
     "Entre com o código Javascript na caixa de texto abaixo:"
     (hr)
     (textarea 'name "jssource" 'rows 40 'cols 80)
