@@ -19,6 +19,6 @@
   (print "Content-type: text/html")
   (newline)
   (ws:with-get-vars (jssource)
-                     (print (show-results-page teste))))
+                     (print (show-results-page jssource))))
 
 (main-cgi)
