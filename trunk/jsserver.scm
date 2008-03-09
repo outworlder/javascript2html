@@ -8,7 +8,7 @@
    (p
     "Entre com o código Javascript abaixo:"
     (hr)
-    (textarea 'name "jssource" 'rows 100 'cols 80)
+    (textarea 'name "jssource" 'rows 40 'cols 80)
     (br)
     (input 'type "submit" 'value "Enviar")) page-title:"Javascript Pretty Printer" charset: "utf-8"))
 
@@ -17,4 +17,4 @@
   (newline)
   (print start-page))
   
-(main-cgi)
+(main-cgi)100
