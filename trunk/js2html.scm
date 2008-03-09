@@ -291,15 +291,14 @@
         (with-output-to-file output-filename process)
         (process))))
 
-(define (process-js-from-web js-text)
+(define (process-js-from-web js-text-string)
     (let ((process (lambda ()
-                   (let ((parsed-file (with-input-from-string js-text parse-tokens)))
-                     (print html-header (tokens->html parsed-file) html-footer)))))
+                   (let ((parsed-file (with-input-from-string js-text-string parse-tokens)))
+                     (tokens->html parsed-file)))))
         (process)))
   
 (define (main args)
-  (if (null? args)
-      (display-usage #f)
+  (unless(null? args)
       (begin
         (parse-command-line args)
         (print "Command-line parsing complete.")

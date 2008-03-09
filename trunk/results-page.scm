@@ -6,12 +6,6 @@
 
 (include "js2html.scm")
 
-(define results-page
-(ws:page
- (head "Javascript Pretty Printer - Resultados"
-       (body 
-        (link 'value "../start-page")))))
-
 (define (show-results-page formatted-js)
   (ws:page 
    (p "Código javascript com syntax-highlight:"
