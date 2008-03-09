@@ -294,7 +294,6 @@
 (define (process-js-from-web js-text-string)
     (let ((process (lambda ()
                    (let ((parsed-file (with-input-from-string js-text-string parse-tokens)))
-                     (print "Parsed file: " parsed-file)
                      (tokens->html parsed-file)))))
         (process)))
   
