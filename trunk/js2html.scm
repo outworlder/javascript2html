@@ -6,7 +6,8 @@
 ;; javascript2html <-o output file> input_file
 
 ;; Loading the Regular Expressions library
-(require 'regex)
+;; Update: Not being used anymore.
+;;(require 'regex)
 
 ;; Loading SRFI-13 (String enhancements)
 (require 'srfi-13)
@@ -97,9 +98,9 @@
 ;; Display command-line options, in case the user screws up.
 (define (display-usage error)
   (when error
-    (print "Error: " error)
+    (print "Erro: " error)
     (newline))
-  (print "Usage: js2html [-o output_file] input_file")
+  (print "Sintaxe: js2html [-o arquivo_saida] arquivo1 arquivo2...arquivoN")
   (newline))
 
 ;; Macro to make it easier to call an operation returned by 
@@ -312,7 +313,7 @@
 ;; After the token list is created, assembles the header, footer and the body.
 ;; Body is made using tokens->html
 (define (process-js-file filename)
-  (print "Parsing file: " filename)
+  (print "Processando arquivo: " filename)
   (let ((process (lambda ()
                    (let ((parsed-file (with-input-from-file filename parse-tokens)))
                      (print html-header (tokens->html parsed-file) html-footer)))))
@@ -330,7 +331,7 @@
   (unless(null? args)
       (begin
         (parse-command-line args)
-        (print "Command-line parsing complete.")
+        (print "Parsing da linha de comando completo.")
         (if (null? input-files)
             (display-usage)
             (map process-js-file input-files)))))
