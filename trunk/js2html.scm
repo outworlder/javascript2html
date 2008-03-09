@@ -196,7 +196,7 @@
       (char=? #\' character)))
 
 ;; Convenience function to read the next token
-(define (next-token)
+(define (next-js-token)
   (my-read-token predicate-identify-js-token))
 
 ;; Function that reads characters from [port] until end of file, or the 
@@ -258,7 +258,7 @@
 ;; invocations. Could probably be made simpler(or redundant) using call/cc.
 (define (parse-tokens)
     (let loop((buffer (list)))
-      (let ((token (next-token)))
+      (let ((token (next-js-token)))
         (if (not (eof-object? token))
             (let ((result (parse-token token)))
               (if result
