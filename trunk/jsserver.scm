@@ -8,7 +8,7 @@
    (p
     "Entre com o código Javascript abaixo:"
     (hr)
-    (textarea 'name "jssource" )
+    (textarea 'name "jssource" 'rows 100 'cols 80)
     (br)
     (input 'type "submit" 'value "Enviar")) page-title:"Javascript Pretty Printer" charset: "utf-8"))
 
