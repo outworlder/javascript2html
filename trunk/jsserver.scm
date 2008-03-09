@@ -6,15 +6,16 @@
 (define start-page
   (ws:page
    (p
-    "Entre com o código Javascript abaixo:"
+    (form 'action "results-page.cgi" 'method "post"
+    "Entre com o código Javascript na caixa de texto abaixo:"
     (hr)
     (textarea 'name "jssource" 'rows 40 'cols 80)
     (br)
-    (input 'type "submit" 'value "Enviar")) page-title:"Javascript Pretty Printer" charset: "utf-8"))
+    (input 'type "submit" 'value "Enviar"))) page-title:"Javascript Pretty Printer" charset: "utf-8"))
 
 (define (main-cgi)
   (print "Content-type: text/html")
   (newline)
   (print start-page))
   
-(main-cgi)100
+(main-cgi)
