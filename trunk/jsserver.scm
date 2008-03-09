@@ -8,7 +8,8 @@
    (p
     "Entre com o código Javascript abaixo:"
     (hr)
-    (input 'type "textbox" )
+    (textarea 'name "jssource" )
+    (br)
     (input 'type "submit" 'value "Enviar")) page-title:"Javascript Pretty Printer" charset: "utf-8"))
 
 (define (main-cgi)
