@@ -41,7 +41,7 @@
 ;; Table that contains the syntax highlighting conventions
 (define syntax-highlight-table
   '(
-    (identifier "#00FF00" (none))
+    (identifier "#00AA00" (none))
     (reserved-word "" (bold))
     (string "#FF0000" (none))
     (number "#0000FF" (none))
@@ -171,7 +171,8 @@
 
 (define (predicate-identify-identifier character)
   (or (char-alphabetic? character)
-      (char-numeric? character)))
+      (char-numeric? character)
+      (char=? "_" character)))
 
 (define (match-number? str)
   (string->number str))
@@ -179,9 +180,11 @@
 (define (match-identifier? str)
   (if (string-null? str)
       #f)
-  (if (char-alphabetic? (string-ref str 0))
-      (string-every predicate-identify-identifier str 1)
-      #f))
+  (let ((start-character (string-ref str 0)))
+    (if (and (predicate-identify-identifier start-character)
+	     (not (char-numeric? start-character)))
+	(string-every predicate-identify-identifier str 1)
+	#f)))
       
 (define (match-reserved-word? str)
   (member str javascript-reserved-words))
