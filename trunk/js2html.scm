@@ -172,7 +172,7 @@
 (define (predicate-identify-identifier character)
   (or (char-alphabetic? character)
       (char-numeric? character)
-      (char=? "_" character)))
+      (char=? #\_ character)))
 
 (define (match-number? str)
   (string->number str))
