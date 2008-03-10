@@ -1,0 +1,57 @@
+Trabalho 1 de Compiladores (Javascript -> HTML)
+Stephen Pedrosa Eilert - 9911081
+
+Instruções de uso:
+
+Foi desenvolvido utilizando o Chicken Scheme [www.call-with-current-continuation.org]
+
+O trabalho está hospedado em um host [outworlder.nfshost.com/jsserver.cgi] como
+dois programas CGI, jsserver (para a página inicial) e results-page (para a página
+que mostra o resultado da conversão). Existem também duas scripts bash que configuram o
+ambiente, mas que provavelmente não são necessárias caso o servidor tenha os "Eggs"
+necessários e a versão do Chicken correta.
+
+O programa principal (js2html.scm) também pode ser utilizado de forma independente, da
+seguinte forma:
+
+Sintaxe: js2html [-o arquivo_saida] arquivo1 arquivo2...arquivoN
+
+Aonde o arquivo de saída é opcional. Caso não seja informado, o destino é stdout.
+
+*NOTA: Apesar de previsto como uma das opções de linha de comando, por enquanto
+o programa não gera CSS.
+
+
+Instruções de compilação:
+
+*NOTA: A saída do Chicken é um código fonte C, que é em seguida compilado pelo gcc.
+Portanto, as instruções abaixo assumem que o ambiente de desenvolvimento C está 
+corretamente instalado (o que, caso o Chicken seja instalado via tarball, é garantido).
+
+
+Caso seja necessário, os seguintes passos devem ser utilizados para compilar o trabalho:
+
+1- Obter o Chicken Scheme. Isso pode ser feito tanto via gerenciador de pacotes da 
+distribuição, ou baixando o fonte em www.call-with-current-continuation.org 
+
+2- Se não interessar utilizar como um CGI, pule para o próximo passo. Senão, é
+necessário instalar ainda os "eggs" (bibliotecas), utilizando:
+
+chicken-setup web-scheme
+chicken-setup cgi-util
+
+3- Compilar os programas:
+
+csc js2html.scm
+
+Isso vai gerar um executável chamado js2html no diretório atual.
+
+csc results-page.scm
+csc jsserver.scm
+
+Para compilar os programas CGI (o results-page.scm inclui o js2html.scm).
+
+Deixo a configuração do servidor WEB a cargo do leitor ;)
+
+
+
